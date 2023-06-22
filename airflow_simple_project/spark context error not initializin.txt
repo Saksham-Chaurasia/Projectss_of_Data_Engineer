@@ -1,0 +1,11 @@
+spark context error not initializing 
+
+just set :
+nano ~/.bashrc
+
+export SPARK_LOCAL_HOSTNAME=localhost
+
+source ~/.bashrc
+
+
+restart all the terminals .

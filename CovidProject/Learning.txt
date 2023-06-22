@@ -1,0 +1,13 @@
+Learning:
+
+1. we never create primary key for hive it is a file based storage not the record based
+2. sqoop import hdfs to mysql,
+3. sqoop export mysql to hdfs,
+4. created optimized hive tables and partitioning -bucketing , and change the missing data , in proper format of data , with the help of udf function, yyyy-mm-dd
+5. learn about avro,parquet and orc file fomats 
+6. use analysis by running sql queries with the help of  join 
+7. sqoop will not going to load the data into hdfs if the mysql table does not have primary key, split by id
+8. if we try to load the data into hive by hdfs , if the data is not load , still we get the data that means the data isn't load completely there definitely should be some missing data is there
+9. hive external table partition column is always a virtual column we cannot change the position do something on it , we can't update the data in the hive external table data, because it is just a pointer to the hdfs data.
+10. we need to create a  new table always.
+

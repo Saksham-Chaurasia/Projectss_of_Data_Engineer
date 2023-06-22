@@ -1,0 +1,50 @@
+create external table covidop2 (sno int, dates string ,cured int,deaths int, confirmed int)partitioned by (state string) clustered by(dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/covidt'
+
+
+create external table covidop (sno int, dates string,cured int,deaths int, confirmed int)partitioned by (state string) clustered by(dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/covidt
+insert into table covidop partition(state) select sno, dates, state,cured,deaths,confirmed from covid
+
+
+load data inpath '/CovidProject/covid2/part-m-*'  overwrite into table covidop partition(state = 'Goa') fields (sno,dates,state,cured,deaths,confirmed)
+
+insert into table covidop partition(state) select sno, dates, 
+cured,deaths,confirmed,state from covid 
+
+create external table statewisess(seq int,dates string,total_samples int,negative int, positive int) partitioned by (state string) clustered by (dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/statewise'
+
+
+
+
+update covid set dates = from_unixtime(unix_timestamp(dates,'dd-MM-yyyy')) where dates is not null;
+
+
+create table testing(sno int, dates timestamp,state string,cured int,deaths int,confirmed int)row format delimited fields terminated by ',' stored as textfile;
+
+
+insert overwrite table testing select sno,from_unixtime(unix_timestamp(dates,'dd-MM-yyyy'),'yyyy-MM-dd'),state,cured,deaths,confirmed from covid;
+
+530	NULL	Andhra Pradesh	1	0	83
+531	NULL	Andaman and Nicobar Islands	0	0	10
+532	NULL	Assam	0	0	1
+533	NULL	Bihar	0	1	23
+534	NULL	Chandigarh	0	0	16
+
+
+
+insert into table testing select sno,case when length(dates)=8 then from_unixtime(unix_timestamp(dates,'d/M/yyyy'),'yyyy-MM-dd') when length(dates)=9 then from_unixtime(unix_timestamp(dates,'dd/M/yyyy'),'yyyy-MM-dd') when length(dates)=10 then from_unixtime(unix_timestamp(dates,'dd/MM/yyyy'),'yyyy-MM-dd') when length(dates) =8 then from_unixtime(unix_timestamp( dates,'dd/MM/yy'),'yyyy-MM-dd') else null end as dates,state,cured,deaths,confirmed from covid
+
+select c.dates ,c.cured,c.deaths,c.confirmed,c.state,c.dates,s.total_samples,s.negative,s.positive from covidop c Join statewisess s on(c.dates=s.dates and c.state=s.state)
+
+ select c.confirmed,s.positive ,c.state,c.dates,s.dates from covidop c Join statewisess s on(c.state=s.state)
+
+
+create table new_covid as select sno,case when dates like '_/__/____' then concat(substr(dates,instr(dates,'/',1) + 1,instr(dates,'/',2)-instr(dates,'/',1)-1),'/',substr(dates,1,instr(dates,'/',1)-1),'/',substr(dates,instr(dates,'/',2)+1)) when dates like '__/__/__' then concat('20',substr(dates,instr(dates,'/',1)+1,2),'/',substr(dates,instr(dates,'/',2)+1),'/',substr(dates,1,instr(dates,'/',1)-1))when dates like '__/_/____' then concat(substr(dates,instr(dates,'/',1)+1,instr(dates,'/',2)-instr(dates,'/',1)-1),'/',substr(dates,1,instr(dates,'/',1)-1),'/',substr(dates,instr(dates,'/',2)+1)) else null end as converted_date,state,cured,deaths,confirmed from covid;
+
+CREATE TABLE new_covid AS SELECT sno, CASE WHEN dates LIKE '_/__/____' THEN CONCAT(SUBSTR(dates, INSTR(dates, '/', 1) + 1, INSTR(dates, '/', 2) - INSTR(dates, '/', 1) - 1), '/', SUBSTR(dates, 1, INSTR(dates, '/', 1) - 1), '/', SUBSTR(dates, INSTR(dates, '/', 2) + 1)) WHEN dates LIKE '__/__/__' THEN CONCAT('20', SUBSTR(dates, INSTR(dates, '/', 1) + 1, 2), '/', SUBSTR(dates, INSTR(dates, '/', 2) + 1), '/', SUBSTR(dates, 1, INSTR(dates, '/', 1) - 1)) WHEN dates LIKE '__/_/____' THEN CONCAT(SUBSTR(dates, INSTR(dates, '/', 1) + 1, INSTR(dates, '/', 2) - INSTR(dates, '/', 1) - 1), '/', SUBSTR(dates, 1, INSTR(dates, '/', 1) - 1), '/', SUBSTR(dates, INSTR(dates, '/', 2) + 1)) ELSE NULL END AS converted_date, state, cured, deaths, confirmed FROM covid;
+
+
+
+CREATE TABLE covid_cases_updated AS SELECT id, CASE  WHEN LENGTH(dates) = 10 AND SUBSTR(date, 2, 1) = '/' AND SUBSTR(dates, 5, 1) = '/' THEN CONCAT(SUBSTR(dates, 4, 2), '/', SUBSTR(dates, 1, 2), '/', SUBSTR(dates, 7))  WHEN LENGTH(dates) = 10 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN CONCAT(SUBSTR(dates, 1, 2), '/', SUBSTR(dates, 4, 1), '/', SUBSTR(dates, 5)) WHEN LENGTH(dates) = 10 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN dates WHEN LENGTH(dates) = 8 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN CONCAT('20', SUBSTR(dates, 7, 2), '/', SUBSTR(dates, 4, 2), '/', SUBSTR(dates, 1, 2)) ELSE NULL END AS converted_date, state, cured,deaths,confirmed FROM covid
+
+
+CREATE TABLE covid_cases_updated AS SELECT sno, CASE  WHEN LENGTH(dates) = 10 AND SUBSTR(dates, 2, 1) = '/' AND SUBSTR(dates, 5, 1) = '/' THEN CONCAT(SUBSTR(dates, 1, 1), '/', SUBSTR(dates, 4, 2), '/', SUBSTR(dates, 7)) WHEN LENGTH(dates) = 10 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN CONCAT(SUBSTR(dates, 1, 2), '/', SUBSTR(dates, 4, 1), '/', SUBSTR(dates, 5)) WHEN LENGTH(dates) = 10 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN dates WHEN LENGTH(date) = 8 AND SUBSTR(dates, 3, 1) = '/' AND SUBSTR(dates, 6, 1) = '/' THEN CONCAT('20', SUBSTR(dates, 7, 2), '/', SUBSTR(dates, 4, 2), '/', SUBSTR(dates, 1, 2)) ELSE NULL END AS converted_date, state, cured,deaths,confirmed FROM covid_cases;

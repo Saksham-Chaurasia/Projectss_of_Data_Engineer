@@ -1,0 +1,6 @@
+airflow error : if you encounter an error of scheduler : just remove airflow.db file, 
+
+then it will solved easily
+
+
+ 

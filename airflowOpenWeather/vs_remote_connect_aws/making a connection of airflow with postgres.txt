@@ -1,0 +1,19 @@
+making a connection of airflow with new database: 
+
+download postgres:
+create database --> schema--> table--> query tool : 
+type this:
+create user airflow_user with password 'airflow_user';
+grant all privileges on database airflowdb to airflow_user;
+GRANT ALL PRIVILEGES ON SCHEMA public TO airflow_user;
+
+run this : 
+
+2. then go to airflow cfg --> make the change in sqlite : like this : 
+sql_alchemy_conn = postgresql+psycopg2://airflow_user:airflow_user@localhost/airflowdb
+
+
+3. then --> (airflow_venv) saksham@AcerPredator:~$ pip install psycopg2-binary
+4. then --> (airflow_venv) saksham@AcerPredator:~$ sudo apt-get install libpq-dev
+5. then --> (airflow_venv) saksham@AcerPredator:~$ pip install psycopg2
+6. pip install virtualenv

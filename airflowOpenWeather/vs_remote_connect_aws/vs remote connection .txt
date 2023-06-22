@@ -1,0 +1,13 @@
+vs remote connection :
+1. remote-ssh --> install
+2. connect to host
+3. configure ssh host
+4. ssh/config --> click on it
+5. write the code which i have done
+6. again go to connect to host --> that host you just generated connect to it
+7. choose the platform --> linux
+8. ls--> mkdir folder --> file.py--> write a code --> execute in terminal --> python3 file.py
+
+
+
+

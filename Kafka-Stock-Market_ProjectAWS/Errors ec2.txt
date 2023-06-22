@@ -1,0 +1,20 @@
+Errors: ec2 
+PS D:\Projectssssss\kafka-stock-project> ssh -i "kafka-stock-key.pem" ec2-user@ec2-15-206-69-81.ap-south-1.compute.amazonaws.com
+Bad permissions. Try removing permissions for user: NT AUTHORITY\\Authenticated Users (S-1-5-11) on file D:/Projectssssss/kafka-stock-project/kafka-stock-key.pem.
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+Permissions for 'kafka-stock-key.pem' are too open.
+It is required that your private key files are NOT accessible by others.
+This private key will be ignored.
+Load key "kafka-stock-key.pem": bad permissions
+ec2-user@ec2-15-206-69-81.ap-south-1.compute.amazonaws.com: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+
+
+but when i change the location of pem file from d to c, 
+then it is easily able to get connected, i've tried to change so many permission but i don't know what actually the permission, it is required ..
+
+PS C:\users\saksh\Documents> ssh -i "kafka-stock-key.pem" ec2-user@ec2-15-206-69-81.ap-south-1.compute.amazonaws.com
+
+this one is working
+  

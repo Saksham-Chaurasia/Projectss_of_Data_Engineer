@@ -1,0 +1,108 @@
+from airflow import DAG
+import json
+from datetime import datetime, timedelta
+from airflow.providers.http.sensors.http import HttpSensor
+from airflow.providers.http.operators.http import SimpleHttpOperator
+from airflow.operators.python import PythonOperator
+import pandas as pd
+
+
+    
+default_args = {'owner': 'airflow',
+        'depends_on_past': False,
+        'start_date': datetime(2023,5,5),
+        'email':['saksham84a@gmail.com'],
+        'email_on_failure': False,
+        'email_on_retry': False,
+        'retries': 2,
+        'retry_delay': timedelta(minutes=2)
+        }
+
+
+def kelvin_to_celcius(temp_in_kelvin):
+        temp_in_celcius=(temp_in_kelvin -273.15)
+        return temp_in_celcius
+
+def transform_data(task_instance):
+    data =task_instance.xcom_pull(task_ids="extract_weather_data")
+    city = data["name"]
+    weather_description = data["weather"][0]['description']
+    temp_celcius = round(kelvin_to_celcius(data['main']["temp"]),2)
+    min_temp_celcius=round(kelvin_to_celcius(data['main']["temp_min"]),2)
+    max_temp_celcius=round(kelvin_to_celcius(data['main']["temp_max"]),2)
+    pressure = data["main"]["pressure"]
+    humidity = data["main"]["humidity"]
+    wind_speed=data["wind"]["speed"]
+    time_of_record=datetime.utcfromtimestamp(data['dt'] +data['timezone'])
+    sunrise_time = datetime.utcfromtimestamp(data['sys']['sunrise']+data['timezone'])
+    sunset_time=datetime.utcfromtimestamp(data['sys']['sunset']+data['timezone'])
+
+    # converting into dictionary
+    transformed_data = {
+        "City":city,
+        "Description":weather_description,
+        "Temperature (F)":temp_celcius,
+        "Minimum Temp (F)": min_temp_celcius,
+        "Maximum Temp (F)": max_temp_celcius,
+        "Pressure":pressure,
+        "Humidity": humidity,
+        "Wind Speed":wind_speed,
+        "Time of Record": time_of_record,
+        "Sunrise Time": sunrise_time,
+        "Sunset Time": sunset_time
+        }
+    
+    return transformed_data
+    # print(transformed_data)
+
+    # transformed_data_list = [transformed_data]
+    # df_data =pd.DataFrame(transformed_data_list)
+    # return df_data
+
+def load_data(task_instance):
+          data = task_instance.xcom_pull(task_ids="transform_weather_data")
+          now = datetime.now()
+          dt_string=now.strftime("%d%m%Y%H%M%S")
+          dt_string="barabanki_weather_data" + dt_string + ".csv"
+          
+          df_data=pd.DataFrame([data])
+
+          df_data.to_csv(dt_string,index=False)
+
+
+with DAG(dag_id='weather_dag',
+        default_args=default_args,
+        description='weather_api',
+        # start_date=dateti me(),
+        schedule_interval='@daily',
+        catchup=False,
+        # tags=['']
+) as dag:
+
+    weather_api_connect = HttpSensor(
+        task_id='weather_api_connect',
+	http_conn_id='weathermap_api',
+        endpoint='data/2.5/weather?q=barabanki,IN&appid=1aefcb9f02571123f927fa4cfe7e36e6'
+    )
+
+    extract_weather_data=SimpleHttpOperator(
+        task_id='extract_weather_data',
+        http_conn_id='weathermap_api',
+        endpoint='data/2.5/weather?q=barabanki,IN&appid=1aefcb9f02571123f927fa4cfe7e36e6',
+        method='GET',
+        response_filter=lambda r:json.loads(r.text),
+        log_response=True
+    )
+
+    transform_weather_data=PythonOperator(
+        task_id="transform_weather_data",
+        python_callable=transform_data
+    )
+    load_weather_data=PythonOperator(
+        task_id="barabanki_weather_data",
+        python_callable=load_data
+    )
+
+    weather_api_connect >> extract_weather_data
+    extract_weather_data >> transform_weather_data
+    transform_weather_data >> load_weather_data

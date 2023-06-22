@@ -1,0 +1,6 @@
+airflow_simple_project
+
+1. writing a code:
+2. pip install apache-airflow-providers-amazon on ubuntu , so you can connection id on airflow web ui --> admin --> connections , --refer to code
+
+3.

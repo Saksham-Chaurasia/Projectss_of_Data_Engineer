@@ -1,0 +1,63 @@
+Twitter_airflow project
+1. create an EC2 instance of ubuntu not amazon linux --> with all the internet service provide like http, https.
+2. connect with your cmd to aws ec2 instance, by key pairs
+
+to connect :
+PS C:\Users\saksh> ssh -i "twitter_key.pem" ubuntu@ec2-15-206-209-58.ap-south-1.compute.amazonaws.com
+
+
+3. sudo apt-get update
+4. sudo apt install python3-pip
+5. sudo pip install apache-airflow
+6. sudo pip install pandas
+7. sudo pip install s3fs
+8. sudo pip install tweepy
+
+running airflow server
+9. airflow in aws shell --> airflow standalone 
+ubuntu@ip-172-31-13-168:~$ airflow standalone
+
+# if you are getting an error, use this commands 
+ubuntu@ip-172-31-13-168:~$ pip install virtualenv
+and pip install apache-airflow[cncf.kubernetes]
+
+to see the airflow dags is working, copy the dns address of ec2 instance, paste into the browser
+first go to the security of groups --> edit enbound rules --> add rule allowing all traffic -->save rules
+
+10. copy the username and password.
+
+
+***deploying the codes which i've written on the airflow:
+
+ubuntu@ip-172-31-13-168:~$ ls
+airflow
+ubuntu@ip-172-31-13-168:~$ cd airflow/
+ubuntu@ip-172-31-13-168:~/airflow$ ls
+airflow.cfg  airflow.db  logs  standalone_admin_password.txt  webserver_config.py
+ubuntu@ip-172-31-13-168:~/airflow$ sudo nano airflow.cfg
+
+change the dags-->twitter_dags 
+ctrl+x --> y -->enter
+
+ubuntu@ip-172-31-13-168:~/airflow$ mkdir twitter_dag
+ubuntu@ip-172-31-13-168:~/airflow$ ls
+airflow.cfg  airflow.db  logs  standalone_admin_password.txt  twitter_dag  webserver_config.py
+ubuntu@ip-172-31-13-168:~/airflow$ sudo nano airflow.cfg
+ubuntu@ip-172-31-13-168:~/airflow$ cd twitter_dag
+
+
+now we need to copy those code files into this machine:
+
+ubuntu@ip-172-31-13-168:~/airflow/twitter_dag$  sudo nano twitter_dag.py
+ubuntu@ip-172-31-13-168:~/airflow/twitter_dag$ sudo nano twitter_etl.py
+
+saving into these by copy-paste
+
+#### to get a permission from airflow to write an ec2 machine to create an bucket 
+
+ec2--> instances-->actions-->security-->modify IAM role-->create role-->ec2-->aws service-->s3,ec2 access -->run dag again your job is done
+
+
+
+because of only one core of ec2 instance of free tier i'm not able to run airflow standalone
+

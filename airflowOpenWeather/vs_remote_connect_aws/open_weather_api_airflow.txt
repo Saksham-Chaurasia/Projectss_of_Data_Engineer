@@ -1,0 +1,47 @@
+open_weather_api_airflow
+
+1. create an instance ec2 -> ubuntu--> with t2.small , nano will not work
+2. security-->security groups--> edit inbound rules--> add rule --> custom tcp --> 8080--> anywhere ipv4 --> save rules
+3. make a connection with ec2 instance 
+
+sudo apt update 
+sudo apt upgrade
+sudo apt install python3-pip
+sudo apt install python3.10-venv
+python3 -m venv airflow_venv   --> it created virtual environment
+source airflow_venv/bin/activate
+
+ubuntu@ip-172-31-2-42:~$ source airflow_venv/bin/activate
+(airflow_venv) ubuntu@ip-172-31-2-42:~$ sudo pip install pandas
+
+sudo pip install s3fs
+
+pip install apache-airflow
+
+airflow standalone
+
+username : admin password: MUFwabA64qkA2ng4
+
+4. now copy instance which is running ipv4 address : paste into the browser like : ec2-3-108-51-189.ap-south-1.compute.amazonaws.com:8080
+
+5. vs remote connection then --> write a dag code in a folder inside airflow with dag.py 
+
+6. now airflow ui --> admin --> new connection--> connection id (which is in task of your dag) --> connection_type --> http -->host--> initial web url --> save 
+
+7. write the code of dag
+8. create a bucket 
+9. give access to bucket --> actions--> modify IAM role--> create role--> aws service,ec2,next --> ec2 full access, s3 full access
+10. now update the code to save the file in s3 bucket. 
+
+11. create access key--> security credentials --> create access key --> retrieve access key --> aws configure --> update the credentials 
+ now type this code 
+aws sts get-session-token   (for checking purpose only)
+
+
+
+
+
+
+
+
+ 

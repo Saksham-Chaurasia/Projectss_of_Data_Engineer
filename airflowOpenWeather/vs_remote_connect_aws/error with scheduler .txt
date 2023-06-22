@@ -1,0 +1,10 @@
+error with scheduler : 
+(airflow_venv) saksham@AcerPredator:~$ pip install apache-airflow[cncf.kubernetes]
+
+(airflow_venv) saksham@AcerPredator:~$ pip install virtualenv
+
+yeah no error is showing 
+
+
+ I managed to fix it by setting this value in airflow.cfg:
+
