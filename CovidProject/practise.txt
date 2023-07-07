@@ -8,7 +8,7 @@ insert into table covidop partition(state) select sno, dates, state,cured,deaths
 load data inpath '/CovidProject/covid2/part-m-*'  overwrite into table covidop partition(state = 'Goa') fields (sno,dates,state,cured,deaths,confirmed)
 
 insert into table covidop partition(state) select sno, dates, 
-cured,deaths,confirmed,state from covid 
+cured,deaths,confirmed,state from coviddr 
 
 create external table statewisess(seq int,dates string,total_samples int,negative int, positive int) partitioned by (state string) clustered by (dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/statewise'
 

@@ -1,0 +1,71 @@
+kafka stock project steps, 
+1. make a bucket with command shell. 
+
+PS C:\Users\saksh> aws configure
+AWS Access Key ID [****************JTHV]: AKIA3LA4MK5MICXQJTHV
+AWS Secret Access Key [****************ZG3t]: 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
+Default region name [sljf]: ap-south-1
+Default output format [lsdjf]: None
+PS C:\Users\saksh> aws s3 ls
+
+
+PS C:\Users\saksh> aws s3 mb s3://kafka-stock-bucket
+make_bucket: kafka-stock-bucket
+
+ **connecting with an ec2 instance 
+
+2. PS C:\Users\saksh> ssh -i "kafka-stock-key.pem" ec2-user@ec2-3-109-184-143.ap-south-1.compute.amazonaws.com
+
+error: because access key is not in c location so it can locate that..
+
+Warning: Identity file kafka-stock-key.pem not accessible: No such file or directory.
+The authenticity of host 'ec2-3-109-184-143.ap-south-1.compute.amazonaws.com (3.109.184.143)' can't be established.
+ED25519 key fingerprint is SHA256:gsL3euQUQBDojrzIrkUZHRMqSQlFGA6+MiqpMG/Ck4M.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added 'ec2-3-109-184-143.ap-south-1.compute.amazonaws.com' (ED25519) to the list of known hosts.
+ec2-user@ec2-3-109-184-143.ap-south-1.compute.amazonaws.com: Permission denied (publickey,gssapi-keyex,gssapi-with-mic).
+
+PS C:\Users\saksh> ssh -i "kafka-stock-key.pem" ec2-user@ec2-3-109-184-143.ap-south-1.compute.amazonaws.com
+   ,     #_
+   ~\_  ####_        Amazon Linux 2023
+  ~~  \_#####\
+  ~~     \###|
+  ~~       \#/ ___   https://aws.amazon.com/linux/amazon-linux-2023
+   ~~       V~' '->
+    ~~~         /
+      ~~._.   _/
+         _/ _/
+       _/m/'
+
+
+
+2. after doing the code by commands to install kafka on ec2, 
+
+3. crawler one
+
+crawler: we define data store then crawler scan data store , identifies the data schema and creates metadata in aws glue catalog:
+AWS Glue Data Catalog : It is a central repository of the metadata--> stores :structure of the data, names, data types , columns , partitioning information 
+
+Aws Glue--> data catalog --> crawler --> create crawler --> add data source --> s3 path with slash in the end like : s3://kafka-s-bucket/  --> create IAM role --> roles--> create role --> aws service --> select glue -->next --> access level choose --> name--> create role 
+
+
+--> next --> add database--> name it --> next --> create crawler --> run crawler
+
+
+
+4. athena 
+
+now just select which database you made in athena, 
+
+5. storing the query result in s3 
+
+athena --> settings --> query editor --> manage settings --> query result and location--> save 
+
+
+6. to see the how real time works we need to update our kafka python code, because right now we are getting the data too much faster , if we have a lot of data then we easily see, but we have less amount of data, so we need to slow it down, and it is also necessary when you are also processing/transforming your data , which takes time.
+
+
+
+
+

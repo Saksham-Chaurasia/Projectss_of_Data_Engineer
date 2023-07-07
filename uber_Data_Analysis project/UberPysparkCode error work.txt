@@ -1,0 +1,30 @@
+Uber.work
+
+1. Making a flat csv file into a dimension and fact table format.--> Data modelling. --> in Lucid platform.
+2. then according to that make those table in python code, add columns or drop, like you have designed.
+
+
+3. while creating a dataframe using pandas of python, when I use merge method to join the columns accordingly, i've got an memory error, 
+even when i've shorten my data from 1lakh rows --> 1000 rows, i'm not able to merge the columns, 
+
+MemoryError: Unable to allocate 34.4 GiB for an array with shape (4610928184,) and data type int64
+
+to solve this error, I rewrite my whole code in spark dataframe, because it made to handle large amount of data.
+using join method.
+
+
+Question: If you use standalone laptop, then why this error is solved in spark , but not in python whether you did not have cluster management. How?
+
+
+Answer: The merge operation in Python performs as in-memory join of the datasets, which means it loads all the data into memory before performing the merge operation and it lead to --> memory errors 
+
+While in Spark --> Spark's distributed computing framework and memory management features able to handle this data.
+1. Distributed processing --> It distributed on multiple nodes --> each node have small portion of data.
+2. Memory management --> It uses data partitioning, lazy evaluation and in-memory caching or  it will spills the data in disk if it reaches threshold.
+
+
+
+
+
+
+

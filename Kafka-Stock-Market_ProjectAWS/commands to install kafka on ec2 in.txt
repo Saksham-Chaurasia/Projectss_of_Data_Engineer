@@ -37,7 +37,7 @@ to save press cltr+x ->y->enter we can save this file
 
 **
 creating a topic
-[ec2-user@ip-172-31-47-210 bin]$ ./kafka-topics.sh --create --topic aws_kafka --bootstrap-server 13.233.132.142:9092 --replication-factor 1 --partitions 1
+[ec2-user@ip-172-31-47-210 bin]$ ./kafka-topics.sh --create --topic awskafka --bootstrap-server 13.233.132.142:9092 --replication-factor 1 --partitions 1
 
 [ec2-user@ip-172-31-47-210 bin]$ ./kafka-topics.sh --bootstrap-server 13.233.132.142:9092 --list
 aws_kafka

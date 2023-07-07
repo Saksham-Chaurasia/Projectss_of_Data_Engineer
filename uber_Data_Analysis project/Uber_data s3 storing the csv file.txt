@@ -1,0 +1,17 @@
+Uber_data s3 storing the csv file from local
+
+1. PS C:\Users\saksh> aws s3 mb s3://uber-data-bucket
+make_bucket failed: s3://uber-data-bucket An error occurred (BucketAlreadyExists) when calling the CreateBucket operation: The requested bucket name is not available. The bucket namespace is shared by all users of the system. Please select a different name and try again.
+
+PS C:\Users\saksh> aws s3 mb s3://uberdatabucket
+make_bucket: uberdatabucket
+
+2. PS C:\Users\saksh> aws s3 cp "D:/Projectssssss/uber_Data_Analysis project/uber_data.csv" s3://uberdatabucket
+upload: D:\Projectssssss\uber_Data_Analysis project\uber_data.csv to s3://uberdatabucket/uber_data.csv
+
+
+3. access key : AKIA3LA4MK5ME2HROFVP
+4 . secret access key : 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
+
+
+5.error:  when you set up the credentials always restart the kernel, okay.

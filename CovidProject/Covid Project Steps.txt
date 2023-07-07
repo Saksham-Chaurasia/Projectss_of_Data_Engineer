@@ -1,0 +1,174 @@
+Covid Project Steps:
+
+
+
+1. mkdir CovidProject
+2. Save all the files which i needed.
+
+3. mysql -utraining -ptraining   or mysql --user=training --password=training
+
+4. create database covid;
+5. show databases;
+6. use database covid;
+
+7. create table covid(sno varchar(10) not null primary key, date varchar(15), state varchar(50),cured int, deaths int, confirmed int);
+
+8. create table statewise(seq int not null primary key, date varchar(15), state varchar(50), total_samples int, negative int, positive int);
+
+Note: i've picked date as character datatype because the date is not in proper default format, so if i mentioned the date as date datatype, 
+it will not going to load any data and in the end i will only get null values in date column.
+
+From local to hdfs
+
+9. hadoop fs -put /home/training/CovidProject    --> i didn't mention the path of the hdfs, so by default it is going to store on first line of folders.. with the name of CovidProject  or -put --> copyFromLocal
+
+Now using a sqoop export command i'm going to put the data in mysql..
+
+10. sqoop export --connect jdbc:mysql://localhost/covid --username training --password training --table covid --export-dir CovidProject/covid.csv -m4 
+
+11. sqoop export --connect jdbc:mysql://localhost/covid --username training --password training --table statewise --export-dir CovidProject/statewise.csv -m4 
+
+
+i've got an error while executing this when i use --export-dir /CovidProject/covid.csv 
+it means i use wrong path
+
+To check the hive table is external or not. use this command
+
+--> describe formatted <table_name>;
+
+Now, create hive table:
+
+1st internal because i need to bucket or partitioned after that like dynamic partitioning required.
+and it is only possible when i have the table already with the help of that I can do dynamic partitioning. from one table to another table.
+
+11. create database covid;
+12. use covid;
+13. set hive.cli.print.current.db=true;  --> it shows which database i'm using 
+14. create table covidtest(sno int, date string, state string, cured int , deaths int, confirmed int) row format delimited fields terminated by ',' stored as textfile;
+
+error: defining date column in hive as date is not recommended it will consider as a date datatype. To know the all available functions in hive use this command
+--> show functions --> concluded date datatype is not in my hive version.
+
+[create table covid(sno int, dates string, state string, cured int , deaths int, confirmed int) row format delimited fields terminated by ',' stored as textfile;
+
+create table statewise(seq int, date string, state string, total_samples int, negative int, positive int) row format delimited fields terminated by ',' stored as textfile;]
+
+
+*now importing the data from mysql to hive
+15. sqoop import --connect jdbc:mysql://localhost/covid --username training --password training --table covid --hive-table covid.covidtest --create-hive-table --hive-import -m1
+
+16. sqoop import --connect jdbc:mysql://localhost/covid --username training --password training --table statewise --hive-table covid.statewise --create-hive-table --hive-import -m1
+
+--> create-hive-table will create the table with the same schema of mysql if it does not exist. otherwise that will not effect anything.
+
+--> do mention the hive database otherwise you will get the data in default database, and if you import the data always you get the file already exception... 
+
+--> error: sometimes sqoop command created the file outside of warehouse , so we have to delete that... hadoop fs -ls  --> in this location --> then try again
+
+
+--> error: while importing the data when i try to see the data in covid hive table records i'm seeing the null values, because of data mismatch, in mysql sno--> varchar while in hive sno --> int 
+
+to counter this --> mysql--> alter table covid modify column sno int;
+
+--> and also you do not need to create hive table before, you can direct import the data by just using the create hive table, then you will be able to encounter of null values easily, 
+
+--> create hive table before is not necessary..
+
+just use 15,16 steps.
+
+17. Now we need to conquer with missing data format fromat
+  which is in covid table --> d/m/yyyy or dd/m/yyyy or dd/mm/yy to --> yyyy/mm/dd
+
+statewise table --> m/dd/yyyy or m/d/yyyy --> yyyy/mm/dd
+
+I've use hive udf function , to fill the missing data .
+
+export that jar file --> which is in /home/training/hive_practice/ConvertDateUdf.jar
+
+18. hive> add jar /home/training/hive_practice/ConvertDateUdf.jar;
+hive> create temporary function coviddate as 'com.dateformats.ConvertDateUdf';
+hive> create temporary function statewisedate as 'com.dateformats.StateWiseData';
+
+
+19. create table sqlcovid(sno int, `date` string, state string, cured int , deaths int, confirmed int) row format delimited fields terminated by ',' stored as textfile;
+
+create table sqlstatewise(seq int, `date` string, state string, total_samples int, negative int, positive int) row format delimited fields terminated by ',' stored as textfile;
+
+
+
+error: parse exception in column date, use backticks `date` there
+
+** inserting the update data of date column using udf in a new table.
+
+20. insert into table sqlcovid select sno, coviddate(`date`), state, cured, deaths, confirmed from covid;
+    insert into table sqlstatewise select seq, statewisedate(`date`), state, total_samples, negative, positive from statewise;
+
+now there is no need of previous unformatted data, so delete that one's 
+drop table covid;
+drop table statewise;
+
+
+** creating external table so data wouldn't get lost if someone mistakenly drop it 
+
+21. create external table covid (sno int, dates string ,cured int,deaths int, confirmed int)partitioned by (state string) clustered by(dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/covidData';
+
+
+
+ create external table statewise(seq int,dates string,total_samples int,negative int, positive int) partitioned by (state string) clustered by (dates) into 10 buckets row format delimited fields terminated by ',' stored as textfile location '/CovidProject/statewise';
+
+
+
+** now inserting 
+
+// to load data into dynamic partitioning table, we first have to
+set hive.exec.dynamic.partition=true;
+set hive.exec.dynamic.partition.mode=nonstrict;
+[set hive.enforce.bucketing=true;
+set hive.exec.max.dynamic.partition.pernode=30;]s
+
+
+** not correct
+[insert into table covid partition(state) select sno, dates, state,cured,deaths,confirmed from sqlcovid;
+
+insert into table statewise partition(state) select seq, dates,state, total_samples, negative, positive from sqlstatewise;]
+
+
+error: max dynamic partition per node because dates column, is not in the same way as in dynamic partitioning the partition column always make in end of all column 
+
+
+
+** correct
+[insert into table covid partition(state) select sno, dates, cured,deaths,confirmed,state from sqlcovid ;
+
+insert into table statewise partition(state) select seq, dates, total_samples, negative, positive, state from sqlstatewise ;]
+ 
+set hive.enforce.bucketing=true;
+--> describe extended covid;
+
+
+ 
+Query analysis
+1. select c.dates, c.cured,c.deaths,c.confirmed,c.state,c.dates,s.total_samples,s.negative,s.positive from covid c join statewise s on (c.dates=s.dates and c.state=s.state);
+
+2. select c.confirmed,s.positive, c.state,c.dates,s.dates from covidop c join statewise s on (c.state=s.state);
+
+3. select c.state, count(*) from covid c join statewise s on (c.dates=s.dates and c.state=s.state) group by c.state;
+
+4. select c.state, count(*) from covid c join statewise s on (c.state=s.state and c.dates=s.dates and c.confirmed=s.positive) group by c.state;
+
+5. select c.state, count(*) , sum(case when c.confirmed=s.positive then 1 else 0 end) as consistent from covid c join statewise s on (c.dates=s.dates and c.state=s.state) group by c.state order by consistent desc;
+
+6. select c.state, sum(c.confirmed) as k , sum(s.total_samples) from covid c join statewise s on (c.state=s.state) group by c.state order by k desc;
+
+7. select c.state, c.confirmed, c.dates from covid c join statewise s on (c.state=s.state and c.dates=s.dates) order by c.state, c.dates;
+
+
+
+
+
+
+
+
+
+
+
